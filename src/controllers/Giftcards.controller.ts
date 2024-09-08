@@ -11,8 +11,44 @@ interface MailOptions {
 }
 
 import { Twilio } from "twilio";
-import { send } from "process";
 
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = new Twilio(accountSid, authToken);
+
+// Send SMS function using Twilio
+export const sendSMS = async (req: Request, res: Response) => {
+  const { phone, message } = req.body;
+
+  if (!phone || !message) {
+    return res
+      .status(400)
+      .json({ message: "Phone number and message are required." });
+  }
+
+  try {
+    console.log("TWILIO_PHONE_NUMBER:", process.env.TWILIO_NUMBER); // Ensure it's being read correctly
+
+    const smsResponse = await client.messages.create({
+      body: message,
+      from: process.env.TWILIO_NUMBER, // Twilio phone number from environment variable
+      to: phone,
+    });
+
+    res.status(200).json({
+      message: "SMS sent successfully",
+      sid: smsResponse.sid,
+    });
+  } catch (error) {
+    const err = error as Error; // Cast error to a more specific Error type
+    console.error("Twilio error:", err.message); // Log error details
+
+    res.status(500).json({
+      message: "Failed to send SMS",
+      error: err.message,
+    });
+  }
+};
 // Define the SMSOptions interface for type safety
 interface IGiftCard {
   cardId: string;

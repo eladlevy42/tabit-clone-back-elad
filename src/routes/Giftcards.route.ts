@@ -3,6 +3,7 @@ import {
   createGiftcard,
   getCardById,
   redeemGiftcard,
+  sendSMS,
 } from "../controllers/Giftcards.controller";
 
 export const giftCardRouter = Router();
@@ -12,3 +13,4 @@ export const giftCardRouter = Router();
 giftCardRouter.delete("/redeem/:cardId", redeemGiftcard);
 giftCardRouter.post("/create", createGiftcard);
 giftCardRouter.get("/:cardId", getCardById);
+giftCardRouter.post("/send-sms", sendSMS);
