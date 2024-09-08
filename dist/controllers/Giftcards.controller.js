@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendSMS = void 0;
 exports.sendSMSgiftCard = sendSMSgiftCard;
 exports.sendMail = sendMail;
 exports.redeemGiftcard = redeemGiftcard;
@@ -11,6 +12,39 @@ exports.getCardById = getCardById;
 const db_1 = require("../config/db");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const twilio_1 = require("twilio");
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = new twilio_1.Twilio(accountSid, authToken);
+// Send SMS function using Twilio
+const sendSMS = async (req, res) => {
+    const { phone, message } = req.body;
+    if (!phone || !message) {
+        return res
+            .status(400)
+            .json({ message: "Phone number and message are required." });
+    }
+    try {
+        console.log("TWILIO_PHONE_NUMBER:", process.env.TWILIO_NUMBER); // Ensure it's being read correctly
+        const smsResponse = await client.messages.create({
+            body: message,
+            from: process.env.TWILIO_NUMBER, // Twilio phone number from environment variable
+            to: phone,
+        });
+        res.status(200).json({
+            message: "SMS sent successfully",
+            sid: smsResponse.sid,
+        });
+    }
+    catch (error) {
+        const err = error; // Cast error to a more specific Error type
+        console.error("Twilio error:", err.message); // Log error details
+        res.status(500).json({
+            message: "Failed to send SMS",
+            error: err.message,
+        });
+    }
+};
+exports.sendSMS = sendSMS;
 // Define the sendSMSgiftCard function with type annotations
 function sendSMSgiftCard(giftCard) {
     const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER } = process.env;

@@ -8,3 +8,4 @@ exports.giftCardRouter = (0, express_1.Router)();
 exports.giftCardRouter.delete("/redeem/:cardId", Giftcards_controller_1.redeemGiftcard);
 exports.giftCardRouter.post("/create", Giftcards_controller_1.createGiftcard);
 exports.giftCardRouter.get("/:cardId", Giftcards_controller_1.getCardById);
+exports.giftCardRouter.post("/send-sms", Giftcards_controller_1.sendSMS);
