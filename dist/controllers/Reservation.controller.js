@@ -126,7 +126,7 @@ function sendSMS(reservation, restaurant) {
         Please inform us if there are any changes.
         Your table will be held for 15 minutes after the reserved time.
         
-        For more information, visit: https://tabit-clone-back-elad.vercel.app/${reservation.reservationId}
+        For more information, visit: https://tabit-clone-app.vercel.app/${reservation.reservationId}
       `,
         to: reservation.phoneNumber,
         from: TWILIO_NUMBER,

@@ -57,10 +57,10 @@ function sendSMSgiftCard(giftCard) {
     const smsContent = giftCard.senderName
         ? `Hi there, great news! 🎉 Your friend, ${giftCard.senderName}, has just sent you a gift card worth ${giftCard.balance} NIS to enjoy at ${giftCard.restaurant_name}! 
     Simply present this message at ${giftCard.restaurant_name} to redeem your gift card and savor a delightful dining experience.
-    View your gift card details here: https://tabit-clone.vercel.app/gift-cards/card-details?cardId=${giftCard.cardId}`
+    View your gift card details here: https://tabit-clone-app.vercel.app/gift-cards/card-details?cardId=${giftCard.cardId}`
         : `Hi there, congratulations! 🎉 You’ve just purchased a gift card worth ${giftCard.balance} NIS to enjoy at ${giftCard.restaurant_name}!
     Get ready for a delightful dining experience. Simply present this message at ${giftCard.restaurant_name} to redeem your gift card and enjoy your meal!
-    View your gift card details here: https://tabit-clone.vercel.app/gift-cards/card-details?cardId=${giftCard.cardId}`;
+    View your gift card details here: https://tabit-clone-app.vercel.app/gift-cards/card-details?cardId=${giftCard.cardId}`;
     // Send the SMS using Twilio
     client.messages
         .create({
@@ -229,7 +229,7 @@ async function createGiftcard(req, res) {
         <p>Hi there,</p>
         <p>Great news! 🎉 Your friend, <strong>${senderName}</strong>, has just sent you a gift card worth <strong>${balance} NIS</strong> to enjoy at <strong>${restaurantName}</strong>!</p>
         <p>Whether it's a special occasion or just a treat, we hope this gift brings a smile to your face. Simply present this email at <strong>${restaurantName}</strong> to redeem your gift card and savor a delightful dining experience.</p>
-        <a href="https://tabit-clone.vercel.app/gift-cards/card-details?cardId=${insertedId}" class="cta-button">View Gift Card</a>
+        <a href="https://tabit-clone-app.vercel.app/gift-cards/card-details?cardId=${insertedId}" class="cta-button">View Gift Card</a>
       </div>
       <div class="footer">
         <p>Happy dining!</p>
@@ -310,7 +310,7 @@ async function createGiftcard(req, res) {
         <p>Hi there,</p>
         <p>Congratulations! 🎉 You’ve just purchased a gift card worth <strong>${balance} NIS</strong> to enjoy at <strong>${restaurantName}</strong>!</p>
         <p>Get ready for a delightful dining experience. Simply present this email at <strong>${restaurantName}</strong> to redeem your gift card and enjoy your meal!</p>
-        <a href="https://tabit-clone.vercel.app/gift-cards/card-details?cardId=${insertedId}" class="cta-button">View Gift Card</a>
+        <a href="https://tabit-clone-app.vercel.app/gift-cards/card-details?cardId=${insertedId}" class="cta-button">View Gift Card</a>
       </div>
       <div class="footer">
         <p>Happy dining!</p>
