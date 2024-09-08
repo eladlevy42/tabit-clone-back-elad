@@ -3,12 +3,40 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendSMSgiftCard = sendSMSgiftCard;
 exports.sendMail = sendMail;
 exports.redeemGiftcard = redeemGiftcard;
 exports.createGiftcard = createGiftcard;
 exports.getCardById = getCardById;
 const db_1 = require("../config/db");
 const nodemailer_1 = __importDefault(require("nodemailer"));
+const twilio_1 = require("twilio");
+// Define the sendSMSgiftCard function with type annotations
+function sendSMSgiftCard(giftCard) {
+    const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER } = process.env;
+    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_NUMBER) {
+        console.error("Twilio credentials are missing.");
+        throw new Error("Twilio credentials are not properly configured.");
+    }
+    const client = new twilio_1.Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+    // Generate the SMS content based on whether senderName is provided or not
+    const smsContent = giftCard.senderName
+        ? `Hi there, great news! 🎉 Your friend, ${giftCard.senderName}, has just sent you a gift card worth ${giftCard.balance} NIS to enjoy at ${giftCard.restaurant_name}! 
+    Simply present this message at ${giftCard.restaurant_name} to redeem your gift card and savor a delightful dining experience.
+    View your gift card details here: https://tabit-clone.vercel.app/gift-cards/card-details?cardId=${giftCard.cardId}`
+        : `Hi there, congratulations! 🎉 You’ve just purchased a gift card worth ${giftCard.balance} NIS to enjoy at ${giftCard.restaurant_name}!
+    Get ready for a delightful dining experience. Simply present this message at ${giftCard.restaurant_name} to redeem your gift card and enjoy your meal!
+    View your gift card details here: https://tabit-clone.vercel.app/gift-cards/card-details?cardId=${giftCard.cardId}`;
+    // Send the SMS using Twilio
+    client.messages
+        .create({
+        body: smsContent,
+        to: giftCard.phoneNumber,
+        from: TWILIO_NUMBER,
+    })
+        .then((message) => console.log(`Message sent: ${message.sid}`))
+        .catch((error) => console.error(`Error sending message: ${error.message}`));
+}
 async function sendMail({ to, subject, text, html, }) {
     try {
         // Create a transporter using your email service provider's SMTP settings
@@ -77,7 +105,7 @@ async function redeemGiftcard(req, res) {
     }
 }
 async function createGiftcard(req, res) {
-    const { restId, firstName, lastName, phoneNumber, email, balance, senderName, restaurantName, } = req.body;
+    const { restId, firstName, lastName, phoneNumber, email, balance, senderName, restaurantName = "The Restaurant", } = req.body;
     // Validate required fields
     if (!restId ||
         !firstName ||
@@ -93,10 +121,12 @@ async function createGiftcard(req, res) {
         const pool = await (0, db_1.connectDB)();
         connection = await pool.getConnection();
         // Call the stored procedure directly to create a new gift card
-        const [result] = await connection.query(`CALL InsertGiftCard(?, ?, ?, ?, ?, ?, ?)`, [restId, firstName, lastName, phoneNumber, email, balance, senderName]);
-        let emailHtmlContent = "";
-        if (senderName) {
-            emailHtmlContent = `
+        const [rows] = await connection.query(`CALL InsertGiftCard(?, ?, ?, ?, ?, ?, ?)`, [restId, firstName, lastName, phoneNumber, email, balance, senderName]);
+        const insertedId = rows[0]?.[0]?.insertedId;
+        if (email) {
+            let emailHtmlContent = "";
+            if (senderName) {
+                emailHtmlContent = `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -165,7 +195,7 @@ async function createGiftcard(req, res) {
         <p>Hi there,</p>
         <p>Great news! 🎉 Your friend, <strong>${senderName}</strong>, has just sent you a gift card worth <strong>${balance} NIS</strong> to enjoy at <strong>${restaurantName}</strong>!</p>
         <p>Whether it's a special occasion or just a treat, we hope this gift brings a smile to your face. Simply present this email at <strong>${restaurantName}</strong> to redeem your gift card and savor a delightful dining experience.</p>
-        <a href="http://localhost:5173/gift-cards/card-details?cardId=${result.insertId}" class="cta-button">View Gift Card</a>
+        <a href="https://tabit-clone.vercel.app/gift-cards/card-details?cardId=${insertedId}" class="cta-button">View Gift Card</a>
       </div>
       <div class="footer">
         <p>Happy dining!</p>
@@ -175,9 +205,9 @@ async function createGiftcard(req, res) {
   </body>
   </html>
   `;
-        }
-        else {
-            emailHtmlContent = `
+            }
+            else {
+                emailHtmlContent = `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -246,7 +276,7 @@ async function createGiftcard(req, res) {
         <p>Hi there,</p>
         <p>Congratulations! 🎉 You’ve just purchased a gift card worth <strong>${balance} NIS</strong> to enjoy at <strong>${restaurantName}</strong>!</p>
         <p>Get ready for a delightful dining experience. Simply present this email at <strong>${restaurantName}</strong> to redeem your gift card and enjoy your meal!</p>
-        <a href="http://localhost:5173/gift-cards/card-details?cardId=${result.insertId}" class="cta-button">View Gift Card</a>
+        <a href="https://tabit-clone.vercel.app/gift-cards/card-details?cardId=${insertedId}" class="cta-button">View Gift Card</a>
       </div>
       <div class="footer">
         <p>Happy dining!</p>
@@ -256,15 +286,26 @@ async function createGiftcard(req, res) {
   </body>
   </html>
   `;
+            }
+            sendMail({
+                to: email,
+                subject: "Tabit Giftcard",
+                html: emailHtmlContent,
+            });
         }
-        sendMail({
-            to: email,
-            subject: "Tabit Giftcard",
-            html: emailHtmlContent,
-        });
+        if (phoneNumber) {
+            const giftcard = {
+                cardId: insertedId,
+                phoneNumber: phoneNumber,
+                balance: balance,
+                restaurant_name: restaurantName,
+                senderName,
+            };
+            sendSMSgiftCard(giftcard);
+        }
         res.status(201).json({
             message: "Gift card created successfully",
-            cardId: result.insertId,
+            cardId: insertedId,
         });
     }
     catch (error) {
