@@ -16,9 +16,9 @@ connectDB(); // Ensure the database connection is established
 app.use(express.json());
 app.use(
   cors({
-    origin: ["*"], // Use your frontend link here
-    methods: ["POST", "GET", "PUT", "DELETE"], // Corrected methods
-    credentials: true,
+    origin: ["https://tabit-clone-app.vercel.app"], // Specify your frontend origin
+    methods: ["POST", "GET", "PUT", "DELETE"], // Allowed methods
+    credentials: true, // Allow credentials (cookies, etc.)
   })
 );
 

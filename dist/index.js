@@ -17,9 +17,9 @@ const app = (0, express_1.default)();
 // Middleware
 app.use(express_1.default.json());
 app.use((0, cors_1.default)({
-    origin: ["*"], // Use your frontend link here
-    methods: ["POST", "GET", "PUT", "DELETE"], // Corrected methods
-    credentials: true,
+    origin: ["https://tabit-clone-app.vercel.app"], // Specify your frontend origin
+    methods: ["POST", "GET", "PUT", "DELETE"], // Allowed methods
+    credentials: true, // Allow credentials (cookies, etc.)
 }));
 // Routes
 app.use("/api/tables", Tables_route_1.tablesRoute);
