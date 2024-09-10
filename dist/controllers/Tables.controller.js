@@ -15,7 +15,7 @@ async function getAllAvaliableTablesByRest(req, res) {
     try {
         const pool = await (0, db_1.connectDB)();
         connection = await pool.getConnection();
-        // Call the stored procedure to get available tables nearby
+        // Directly use the `dd-mm-yyyyThh:mm` format without conversion
         const [rows] = await connection.query(`CALL get_available_tables_by_rest(${restId});`);
         if (!rows || rows.length === 0) {
             res.status(404).json({ message: "No tables found." });
@@ -25,18 +25,6 @@ async function getAllAvaliableTablesByRest(req, res) {
     }
     catch (error) {
         console.error("Error fetching available tables:", error);
-        if (error.code === "ER_CON_COUNT_ERROR") {
-            console.error("Too many connections to the database.");
-        }
-        else if (error.code === "ECONNREFUSED") {
-            console.error("Database connection was refused.");
-        }
-        else if (error.code === "ETIMEDOUT") {
-            console.error("Connection to the database timed out.");
-        }
-        else if (error.code === "ER_ACCESS_DENIED_ERROR") {
-            console.error("Access denied for the database user.");
-        }
         res.status(500).json({ message: "Server error", error: error.message });
     }
     finally {
