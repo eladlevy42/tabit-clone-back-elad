@@ -22,7 +22,8 @@ export async function getAllAvaliableTablesByRest(
 
     // Directly use the `dd-mm-yyyyThh:mm` format without conversion
     const [rows]: [RowDataPacket[], any] = await connection.query(
-      `CALL get_available_tables_by_rest(${restId});`
+      "CALL get_available_tables_by_rest(?);",
+      [restId]
     );
 
     if (!rows || rows.length === 0) {
@@ -56,7 +57,8 @@ export async function getTablePositionsForRest(
     connection = await pool.getConnection();
     // Call the stored procedure to get available tables nearby
     const [rows]: [RowDataPacket[], any] = await connection.query(
-      `SELECT distinct Tables.position FROM defaultdb.Tables where restid=${restId};`
+      "SELECT distinct Tables.position FROM defaultdb.Tables where restid = ?;",
+      [restId]
     );
     if (!rows || rows.length === 0) {
       res.status(404).json({ message: "No tables found." });
