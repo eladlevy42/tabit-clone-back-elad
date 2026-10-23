@@ -3,6 +3,7 @@ node_modules/
 
 # Ignore environment variables file
 .env
+!.env.example
 ca.pem
 # Ignore log files
 npm-debug.log*
